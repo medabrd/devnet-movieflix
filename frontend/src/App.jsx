@@ -23,7 +23,7 @@ export default function App() {
   return (
     <div className="app">
       <nav className="navbar">
-        <Link to="/" className="brand">🎬 MovieFlix</Link>
+        <Link to="/" className="brand">🎬 MovieFlix devnet cicd demo</Link>
         <div className="nav-links">
           <Link to="/">Tendances</Link>
           {token && <Link to="/watchlist">Ma liste</Link>}
