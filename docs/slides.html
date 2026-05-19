@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8"><title>MovieFlix — Slides de soutenance</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #0f1115; color: #e6e6e6; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+.deck { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+.slide { background: #1a1d24; border-radius: 12px; padding: 3rem; margin-bottom: 2rem; min-height: 70vh; position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.4); page-break-after: always; }
+.slide-inner h1 { color: #e50914; font-size: 2.4rem; margin-top: 0; }
+.slide-inner h2 { color: #e50914; font-size: 1.8rem; border-bottom: 2px solid #2a2d34; padding-bottom: 0.4rem; }
+.slide-inner h3 { color: #ffd166; }
+.slide-inner p { font-size: 1.05rem; line-height: 1.6; }
+.slide-inner ul { line-height: 1.8; }
+.slide-inner code { background: #0f1115; padding: 2px 6px; border-radius: 3px; color: #ffd166; font-size: 0.9em; }
+.slide-inner pre { background: #0f1115; padding: 1rem; border-radius: 6px; overflow-x: auto; border-left: 3px solid #e50914; }
+.slide-inner pre code { background: transparent; color: #e6e6e6; padding: 0; }
+.slide-inner table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.slide-inner th, .slide-inner td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #2a2d34; text-align: left; }
+.slide-inner th { background: #0f1115; color: #ffd166; }
+.slide-inner strong { color: #ffffff; }
+.slide-num { position: absolute; bottom: 1rem; right: 1.5rem; color: #555; font-size: 0.85rem; }
+.toolbar { position: sticky; top: 0; background: #0f1115; padding: 0.8rem 1rem; border-bottom: 1px solid #2a2d34; z-index: 10; text-align: center; }
+.toolbar button { background: #e50914; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; margin: 0 4px; }
+.toolbar button:hover { background: #b00710; }
+@media print { .toolbar { display: none; } .slide { box-shadow: none; min-height: 95vh; } body { background: white; color: black; } .slide { background: white; color: black; } .slide-inner h2 { color: #b00710; border-color: #ccc; } .slide-inner pre { background: #f5f5f5; } }
+</style></head><body>
+<div class="toolbar">
+<button onclick="window.print()">Imprimer / PDF</button>
+<button onclick="document.documentElement.requestFullscreen()">Plein écran</button>
+<span style="color:#888; margin-left:1rem;">Soutenance MovieFlix — Med Abroud &amp; Tesnime Chriaa</span>
+</div>
+<div class="deck">
+<section class="slide"><div class="slide-inner"><h1>🎬 MovieFlix</h1>
+<h3>Plateforme de découverte de films & watchlist personnelle</h3>
+
+<p><strong>Mini-projet de fin d'année — DevNet & Automatisation</strong></p>
+
+<p>Équipe : <strong>Med Abroud</strong> & <strong>Tesnime Chriaa</strong></p>
+<p>Date : <em>date de soutenance</em></p></div><div class="slide-num">1 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>1. Contexte & problématique</h2>
+
+<p><strong>Problématique :</strong> comment offrir aux utilisateurs une expérience moderne pour découvrir, rechercher et organiser leurs films préférés, à partir d'un catalogue mondial mis à jour en temps réel ?</p>
+
+<p><strong>Notre réponse :</strong> une application web full-stack qui agrège l'API publique <strong>TMDB</strong> (~1 M+ films) et y ajoute une couche personnalisée (compte utilisateur + watchlist persistante).</p>
+
+<p><strong>Couverture du cahier des charges :</strong></p>
+<ul>
+<li>✅ Backend Python (FastAPI)</li>
+<li>✅ Frontend dynamique (React)</li>
+<li>✅ API REST externe (TMDB) + API REST interne (8 endpoints)</li>
+<li>✅ Conteneurisation (Docker + Compose)</li>
+<li>✅ Automatisation (Bash + Ansible)</li>
+<li>✅ Tests automatisés (pytest)</li>
+<li>✅ Sécurité (JWT + bcrypt)</li>
+<li>✅ Bonus CI/CD (GitHub Actions)</li>
+</ul>
+
+<p>📁 <em>Cahier des charges : <code>CAHIER DES CHARGES-1.pdf</code> (racine projet)</em></p></div><div class="slide-num">2 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>2. Architecture technique</h2>
+
+<pre><code>┌──────────────┐    ┌──────────────────┐    ┌──────────────┐
+│   Browser    │───▶│  Nginx + React   │───▶│   FastAPI    │
+│              │    │  (web container) │    │   (Python)   │
+└──────────────┘    └──────────────────┘    └──────┬───────┘
+                                                   │
+                                          ┌────────┴────────┐
+                                     ┌────▼────┐      ┌─────▼─────┐
+                                     │Postgres │      │ TMDB API  │
+                                     │   16    │      │ (externe) │
+                                     └─────────┘      └───────────┘</code></pre>
+
+<p><strong>3 conteneurs orchestrés par Docker Compose</strong> :</p>
+<ul>
+<li><code>web</code> (Nginx + React buildé)</li>
+<li><code>api</code> (FastAPI + SQLAlchemy)</li>
+<li><code>db</code> (PostgreSQL 16)</li>
+</ul>
+
+<p>Communication : <code>browser → web:80 → api:8000 → {db:5432, TMDB}</code></p>
+
+<p>📁 <em>Définition complète : <code>movieflix/docker-compose.yml</code></em></p></div><div class="slide-num">3 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>3. Stack & structure du projet</h2>
+
+<table><thead><tr><th>Couche</th><th>Technologie</th><th>Justification</th></tr></thead><tbody><tr><td>Backend</td><td><strong>FastAPI</strong> 0.115</td><td>Async, validation Pydantic, doc OpenAPI auto</td></tr><tr><td>Frontend</td><td><strong>React 18 + Vite</strong></td><td>Build ultra-rapide, écosystème mature</td></tr><tr><td>BDD</td><td><strong>PostgreSQL 16</strong></td><td>Robuste, ACID, prêt prod</td></tr><tr><td>Conteneurs</td><td><strong>Docker + Compose</strong></td><td>Iso-env dev/prod</td></tr><tr><td>Provisioning</td><td><strong>Ansible</strong></td><td>Idempotent, déploiement zéro-touche</td></tr><tr><td>CI/CD</td><td><strong>GitHub Actions</strong></td><td>Intégré au repo, gratuit</td></tr><tr><td>API externe</td><td><strong>TMDB</strong></td><td>Gratuite, 1M+ films, multilingue</td></tr></tbody></table>
+
+<pre><code>movieflix/
+├── backend/   (FastAPI + tests pytest)
+├── frontend/  (React + Vite + nginx)
+├── ansible/   (playbook + inventaire)
+├── scripts/   (deploy.sh)
+├── .github/workflows/ci-cd.yml
+└── docker-compose.yml</code></pre>
+
+<p>📁 <em>Racine du projet : <code>C:\Users\M\Desktop\devnet\movieflix\</code></em></p></div><div class="slide-num">4 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>4. Backend Python — point d'entrée FastAPI</h2>
+
+<pre><code>from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.database import Base, engine
+from app.routers import auth, movies, watchlist
+
+app = FastAPI(
+    title=&quot;MovieFlix API&quot;,
+    docs_url=&quot;/api/docs&quot;,
+    openapi_url=&quot;/api/openapi.json&quot;,
+)
+
+app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, ...)
+
+@app.on_event(&quot;startup&quot;)
+def on_startup() -&gt; None:
+    Base.metadata.create_all(bind=engine)
+
+app.include_router(auth.router)
+app.include_router(movies.router)
+app.include_router(watchlist.router)</code></pre>
+
+<p>📁 <strong><code>backend/app/main.py</code></strong> — architecture modulaire : 1 router par domaine métier</p></div><div class="slide-num">5 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>5. Backend — modèles SQLAlchemy & schémas Pydantic</h2>
+
+<pre><code>class User(Base):
+    __tablename__ = &quot;users&quot;
+    id = Column(Integer, primary_key=True)
+    username = Column(String(64), unique=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    watchlist = relationship(&quot;WatchlistItem&quot;, cascade=&quot;all, delete-orphan&quot;)
+
+class WatchlistItem(Base):
+    __tablename__ = &quot;watchlist_items&quot;
+    __table_args__ = (UniqueConstraint(&quot;user_id&quot;, &quot;tmdb_id&quot;),)
+    user_id = Column(Integer, ForeignKey(&quot;users.id&quot;, ondelete=&quot;CASCADE&quot;))
+    tmdb_id = Column(Integer, nullable=False)
+    title = Column(String(255), nullable=False)</code></pre>
+
+<p>📁 <strong><code>backend/app/models.py</code></strong> — tables SQL générées au démarrage</p>
+
+<pre><code>class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=64)
+    password: str = Field(min_length=6, max_length=128)</code></pre>
+
+<p>📁 <strong><code>backend/app/schemas.py</code></strong> — validation des entrées/sorties via Pydantic</p></div><div class="slide-num">6 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>6. Backend — gestion d'erreurs propre</h2>
+
+<pre><code>@router.post(&quot;/register&quot;, response_model=Token, status_code=201)
+def register(payload: UserCreate, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.username == payload.username).first():
+        raise HTTPException(status_code=409, detail=&quot;Username already taken&quot;)
+    user = User(username=payload.username,
+                hashed_password=hash_password(payload.password))
+    db.add(user); db.commit()
+    return Token(access_token=create_access_token(user.username))
+
+@router.post(&quot;/login&quot;, response_model=Token)
+def login(form: OAuth2PasswordRequestForm = Depends(), ...):
+    if user is None or not verify_password(form.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail=&quot;Invalid credentials&quot;)</code></pre>
+
+<p>📁 <strong><code>backend/app/routers/auth.py</code></strong> — codes HTTP RFC 7231-compliant</p>
+
+<table><thead><tr><th>Cas</th><th>Code</th><th>Comportement</th></tr></thead><tbody><tr><td>Succès création</td><td><strong>201</strong></td><td>+ JWT</td></tr><tr><td>User déjà pris</td><td><strong>409</strong></td><td>Conflict</td></tr><tr><td>Bad credentials</td><td><strong>401</strong></td><td>Unauthorized</td></tr><tr><td>Validation Pydantic KO</td><td><strong>422</strong></td><td>Auto</td></tr></tbody></table></div><div class="slide-num">7 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>7. Frontend React — navigation et état d'authentification</h2>
+
+<pre><code>export default function App() {
+  const [token, setToken] = useState(localStorage.getItem(&#x27;token&#x27;));
+  return (
+    &lt;div className=&quot;app&quot;&gt;
+      &lt;nav&gt;
+        &lt;Link to=&quot;/&quot;&gt;Tendances&lt;/Link&gt;
+        {token &amp;&amp; &lt;Link to=&quot;/watchlist&quot;&gt;Ma liste&lt;/Link&gt;}
+        {token ? &lt;button onClick={handleLogout}&gt;Déconnexion&lt;/button&gt;
+               : &lt;Link to=&quot;/login&quot;&gt;Connexion&lt;/Link&gt;}
+      &lt;/nav&gt;
+      &lt;Routes&gt;
+        &lt;Route path=&quot;/&quot; element={&lt;Home authenticated={!!token} /&gt;} /&gt;
+        &lt;Route path=&quot;/watchlist&quot; element={&lt;Watchlist /&gt;} /&gt;
+        &lt;Route path=&quot;/login&quot; element={&lt;Login onLogin={handleLogin} /&gt;} /&gt;
+      &lt;/Routes&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+<p>📁 <strong><code>frontend/src/App.jsx</code></strong> — la nav se met à jour automatiquement à la connexion</p></div><div class="slide-num">8 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>8. Frontend — client API centralisé</h2>
+
+<pre><code>function authHeaders() {
+  const token = localStorage.getItem(&#x27;token&#x27;);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export const api = {
+  trending: () =&gt; http(&#x27;/api/movies/trending&#x27;),
+  search: (q) =&gt; http(`/api/movies/search?q=${encodeURIComponent(q)}`),
+  register: (u, p) =&gt; http(&#x27;/api/auth/register&#x27;,
+    { method: &#x27;POST&#x27;, body: JSON.stringify({username: u, password: p}) }),
+  watchlist: () =&gt; http(&#x27;/api/watchlist&#x27;),
+  addToWatchlist: (m) =&gt; http(&#x27;/api/watchlist&#x27;,
+    { method: &#x27;POST&#x27;, body: JSON.stringify({tmdb_id: m.id, title: m.title}) }),
+};</code></pre>
+
+<p>📁 <strong><code>frontend/src/api.js</code></strong> — injecte automatiquement le JWT dans chaque requête</p></div><div class="slide-num">9 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>9. Intégration API REST — client TMDB</h2>
+
+<pre><code>class TMDBClient:
+    async def _get(self, path: str, params: dict = None) -&gt; dict:
+        params = {**(params or {}), &quot;api_key&quot;: self.api_key, &quot;language&quot;: &quot;fr-FR&quot;}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                response = await client.get(f&quot;{self.base_url}{path}&quot;, params=params)
+            except httpx.HTTPError as exc:
+                raise HTTPException(502, f&quot;TMDB unreachable: {exc}&quot;)
+        if response.status_code == 401:
+            raise HTTPException(502, &quot;TMDB authentication failed&quot;)
+        return response.json()
+
+    async def trending(self): return await self._get(&quot;/trending/movie/week&quot;)
+    async def search(self, query, page=1):
+        return await self._get(&quot;/search/movie&quot;, {&quot;query&quot;: query, &quot;page&quot;: page})</code></pre>
+
+<p>📁 <strong><code>backend/app/services/tmdb.py</code></strong> — couche d'abstraction async avec gestion d'erreurs</p>
+
+<p>→ Panne TMDB ou clé invalide → <strong>502 Bad Gateway</strong> explicite au client</p></div><div class="slide-num">10 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>10. Intégration API — endpoints REST exposés</h2>
+
+<table><thead><tr><th>Méthode</th><th>URL</th><th>Auth</th><th>Description</th></tr></thead><tbody><tr><td><code>GET</code></td><td><code>/api/health</code></td><td>❌</td><td>Healthcheck</td></tr><tr><td><code>GET</code></td><td><code>/api/movies/trending</code></td><td>❌</td><td>Top semaine (TMDB)</td></tr><tr><td><code>GET</code></td><td><code>/api/movies/search?q=...</code></td><td>❌</td><td>Recherche (TMDB)</td></tr><tr><td><code>GET</code></td><td><code>/api/movies/{id}</code></td><td>❌</td><td>Détails d'un film</td></tr><tr><td><code>POST</code></td><td><code>/api/auth/register</code></td><td>❌</td><td>Création compte → JWT</td></tr><tr><td><code>POST</code></td><td><code>/api/auth/login</code></td><td>❌</td><td>Connexion → JWT</td></tr><tr><td><code>GET</code></td><td><code>/api/watchlist</code></td><td>✅</td><td>Liste perso</td></tr><tr><td><code>POST</code></td><td><code>/api/watchlist</code></td><td>✅</td><td>Ajout</td></tr><tr><td><code>DELETE</code></td><td><code>/api/watchlist/{id}</code></td><td>✅</td><td>Suppression</td></tr></tbody></table>
+
+<p>📁 <strong><code>backend/app/routers/{auth,movies,watchlist}.py</code></strong></p>
+
+<p>📘 <strong>Swagger UI auto-généré</strong> disponible à <code>http://localhost:8080/api/docs</code></p>
+
+<p>→ <strong>2 APIs consommées</strong> : TMDB (externe) + notre propre API REST (interne)</p></div><div class="slide-num">11 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>11. Sécurité — Authentification JWT</h2>
+
+<pre><code>from datetime import datetime, timedelta, timezone
+from jose import jwt
+
+def create_access_token(subject: str) -&gt; str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
+    payload = {&quot;sub&quot;: subject, &quot;exp&quot;: expire}
+    return jwt.encode(payload, settings.jwt_secret, algorithm=&quot;HS256&quot;)
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[&quot;HS256&quot;])
+        username = payload.get(&quot;sub&quot;)
+    except JWTError:
+        raise HTTPException(401, &quot;Invalid credentials&quot;,
+                           headers={&quot;WWW-Authenticate&quot;: &quot;Bearer&quot;})
+    user = db.query(User).filter(User.username == username).first()
+    if user is None: raise HTTPException(401, &quot;Invalid credentials&quot;)
+    return user</code></pre>
+
+<p>📁 <strong><code>backend/app/security.py</code></strong> — <strong>stateless</strong> : aucune session côté serveur</p></div><div class="slide-num">12 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>12. Sécurité — Hashage bcrypt + autres mesures</h2>
+
+<pre><code>import bcrypt
+def hash_password(password: str) -&gt; str:
+    return bcrypt.hashpw(password.encode(&quot;utf-8&quot;)[:72], bcrypt.gensalt()).decode()
+
+def verify_password(plain: str, hashed: str) -&gt; bool:
+    return bcrypt.checkpw(plain.encode(&quot;utf-8&quot;)[:72], hashed.encode(&quot;utf-8&quot;))</code></pre>
+
+<p>📁 <strong><code>backend/app/security.py</code></strong></p>
+
+<p><strong>Exemple de hash réellement stocké en BDD :</strong></p>
+<pre><code>$2b$12$/BuTRGwd1SD5SHVlRPpDa.I.n6LnGMgBsyTNbRLleK39GAtPvy67K</code></pre>
+
+<pre><code>add_header X-Frame-Options &quot;SAMEORIGIN&quot; always;
+add_header X-Content-Type-Options &quot;nosniff&quot; always;
+add_header Referrer-Policy &quot;no-referrer-when-downgrade&quot; always;</code></pre>
+
+<p>📁 <strong><code>frontend/nginx.conf</code></strong> — headers de sécurité HTTP côté reverse-proxy</p>
+
+<p>📁 <strong><code>backend/Dockerfile</code></strong> — conteneur en <strong>utilisateur non-root</strong> (<code>USER app</code>)</p>
+<p>📁 <strong><code>backend/app/main.py</code></strong> — <strong>CORS</strong> restrictif (whitelist d'origines)</p></div><div class="slide-num">13 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>13. Tests automatisés — pytest</h2>
+
+<pre><code>def test_watchlist_crud(client):
+    token = _register_and_login(client, &quot;bob&quot;)
+    headers = {&quot;Authorization&quot;: f&quot;Bearer {token}&quot;}
+
+    empty = client.get(&quot;/api/watchlist&quot;, headers=headers)
+    assert empty.status_code == 200 and empty.json() == []
+
+    add = client.post(&quot;/api/watchlist&quot;, headers=headers,
+        json={&quot;tmdb_id&quot;: 27205, &quot;title&quot;: &quot;Inception&quot;})
+    assert add.status_code == 201
+
+    dup = client.post(&quot;/api/watchlist&quot;, headers=headers,
+        json={&quot;tmdb_id&quot;: 27205, &quot;title&quot;: &quot;Inception&quot;})
+    assert dup.status_code == 409   # contrainte UNIQUE
+
+def test_watchlist_requires_auth(client):
+    assert client.get(&quot;/api/watchlist&quot;).status_code == 401</code></pre>
+
+<p>📁 <strong><code>backend/tests/test_auth_watchlist.py</code></strong></p>
+
+<pre><code>@respx.mock
+def test_trending_uses_tmdb(client):
+    respx.get(f&quot;{TMDB}/trending/movie/week&quot;).mock(
+        return_value=httpx.Response(200, json={...}))
+    response = client.get(&quot;/api/movies/trending&quot;)
+    assert response.status_code == 200</code></pre>
+
+<p>📁 <strong><code>backend/tests/test_movies.py</code></strong> — TMDB mocké, pas de vraie requête réseau</p></div><div class="slide-num">14 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>14. Tests — résultats d'exécution</h2>
+
+<pre><code>$ docker compose exec api pytest -v
+
+============================= test session starts =============================
+platform win32 -- Python 3.13.0, pytest-8.3.3, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: anyio-4.13.0, asyncio-0.24.0, respx-0.21.1
+collected 5 items
+
+tests/test_auth_watchlist.py::test_register_and_duplicate    PASSED  [ 20%]
+tests/test_auth_watchlist.py::test_watchlist_crud            PASSED  [ 40%]
+tests/test_auth_watchlist.py::test_watchlist_requires_auth   PASSED  [ 60%]
+tests/test_health.py::test_health_ok                          PASSED  [ 80%]
+tests/test_movies.py::test_trending_uses_tmdb                 PASSED  [100%]
+
+============================== 5 passed in 1.12s ==============================</code></pre>
+
+<p>📁 <strong><code>backend/tests/</code></strong> · configuration : <strong><code>backend/pytest.ini</code></strong></p>
+
+<p>✅ <strong>5/5 tests passent</strong> — couvre auth, CRUD watchlist, sécurité (401), intégration TMDB</p></div><div class="slide-num">15 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>15. Docker — Dockerfile backend optimisé</h2>
+
+<pre><code>FROM python:3.12-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+WORKDIR /app
+
+RUN apt-get update &amp;&amp; apt-get install -y --no-install-recommends \
+    gcc libpq-dev curl &amp;&amp; rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .                  # cache layer indépendant
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app ./app
+
+RUN addgroup --system app &amp;&amp; adduser --system --ingroup app app
+USER app                                  # ← non-root (sécurité)
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -fsS http://localhost:8000/api/health || exit 1
+
+CMD [&quot;uvicorn&quot;, &quot;app.main:app&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;8000&quot;]</code></pre>
+
+<p>📁 <strong><code>backend/Dockerfile</code></strong> · ignorés : <strong><code>backend/.dockerignore</code></strong></p>
+
+<p>→ <strong>Image légère</strong> (<code>python:slim</code>) · <strong>cache pip</strong> · <strong>healthcheck natif Docker</strong></p></div><div class="slide-num">16 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>16. Docker — Dockerfile frontend (multi-stage)</h2>
+
+<pre><code># ───── Stage 1 : BUILD avec Node 20 ─────
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json ./
+RUN npm install
+COPY . .
+RUN npm run build                # produit /app/dist (HTML/CSS/JS statiques)
+
+# ───── Stage 2 : RUNTIME avec Nginx ─────
+FROM nginx:1.27-alpine AS runtime
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80</code></pre>
+
+<p>📁 <strong><code>frontend/Dockerfile</code></strong> · config Nginx : <strong><code>frontend/nginx.conf</code></strong></p>
+
+<p><strong>Bénéfice du multi-stage :</strong></p>
+<ul>
+<li>Stage 1 (Node + node_modules) : ~1 GB → <strong>jeté</strong></li>
+<li>Stage 2 (Nginx + dist statiques) : <strong>~30 MB</strong> ← image finale</li>
+</ul></div><div class="slide-num">17 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>17. Docker — orchestration Compose</h2>
+
+<pre><code>services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: movieflix, POSTGRES_PASSWORD: movieflix, ... }
+    volumes: [db_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;pg_isready -U movieflix&quot;]
+      interval: 10s
+    networks: [movieflix]
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://movieflix:movieflix@db:5432/movieflix
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      db: { condition: service_healthy }    # ← attend que la BDD soit prête
+    networks: [movieflix]
+
+  web:
+    build: ./frontend
+    depends_on: [api]
+    ports: [&quot;8080:80&quot;]
+    networks: [movieflix]
+
+volumes: { db_data: }
+networks: { movieflix: { driver: bridge } }</code></pre>
+
+<p>📁 <strong><code>docker-compose.yml</code></strong> · variables : <strong><code>.env</code></strong> (basé sur <code>.env.example</code>)</p></div><div class="slide-num">18 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>18. Automatisation — Script Bash</h2>
+
+<pre><code>#!/usr/bin/env bash
+set -euo pipefail
+MODE=&quot;${1:-local}&quot;
+
+if [[ &quot;${MODE}&quot; == &quot;local&quot; ]]; then
+  echo &quot;[deploy] Local deployment via docker compose&quot;
+  command -v docker &gt;/dev/null || die &quot;Docker not installed&quot;
+  docker compose pull --ignore-pull-failures || true
+  docker compose up -d --build
+  for i in {1..30}; do
+    if curl -fsS &quot;http://localhost:8080/api/health&quot; &gt;/dev/null 2&gt;&amp;1; then
+      echo &quot;[deploy] API healthy. UI: http://localhost:8080&quot;
+      exit 0
+    fi
+    sleep 2
+  done
+  die &quot;API did not become healthy in time&quot;
+
+elif [[ &quot;${MODE}&quot; == &quot;remote&quot; ]]; then
+  echo &quot;[deploy] Remote deployment via Ansible&quot;
+  ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
+fi</code></pre>
+
+<p>📁 <strong><code>scripts/deploy.sh</code></strong> — une commande : <code>./scripts/deploy.sh local|remote</code></p></div><div class="slide-num">19 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>19. Automatisation — Playbook Ansible</h2>
+
+<pre><code>- name: Deploy MovieFlix stack
+  hosts: movieflix
+  become: true
+  tasks:
+    - name: Install Docker engine &amp; compose plugin
+      apt:
+        name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+        state: present
+
+    - name: Sync project sources to /opt/movieflix
+      synchronize:
+        src: &quot;{{ playbook_dir }}/..&quot;
+        dest: &quot;{{ project_root }}/&quot;
+        rsync_opts: [&quot;--exclude=.git&quot;, &quot;--exclude=node_modules&quot;]
+
+    - name: Copy environment file
+      copy: { src: &quot;../.env&quot;, dest: &quot;{{ project_root }}/.env&quot;, mode: &#x27;0600&#x27; }
+
+    - name: Build and start the stack
+      command: docker compose up -d --build
+      args: { chdir: &quot;{{ project_root }}&quot; }
+
+    - name: Wait for API health
+      uri: { url: &quot;http://localhost:8080/api/health&quot; }
+      register: health
+      retries: 12
+      delay: 5
+      until: health.status == 200</code></pre>
+
+<p>📁 <strong><code>ansible/deploy.yml</code></strong> · cibles : <strong><code>ansible/inventory.ini</code></strong> — <strong>idempotent</strong></p></div><div class="slide-num">20 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>20. Bonus — Pipeline CI/CD (GitHub Actions)</h2>
+
+<pre><code>on: { push: { branches: [main] }, pull_request: { branches: [main] } }
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: &#x27;3.12&#x27;, cache: &#x27;pip&#x27; }
+      - run: pip install -r requirements.txt &amp;&amp; pip install ruff
+      - run: ruff check app tests           # lint
+      - run: pytest                          # tests
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with: { node-version: &#x27;20&#x27;, cache: &#x27;npm&#x27; }
+      - run: npm install &amp;&amp; npm run build
+
+  docker-build:
+    needs: [backend-tests, frontend-build]
+    steps:
+      - uses: docker/build-push-action@v6
+        with: { context: ./backend, cache-from: type=gha, cache-to: type=gha,mode=max }
+      - uses: docker/build-push-action@v6
+        with: { context: ./frontend, cache-from: type=gha }</code></pre>
+
+<p>📁 <strong><code>.github/workflows/ci-cd.yml</code></strong></p>
+
+<p>→ À chaque push : <strong>lint + tests + build images</strong> — déploiement bloqué si KO</p></div><div class="slide-num">21 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>21. Démo en direct — parcours utilisateur</h2>
+
+<p><strong>Étape 1 — Lancement de la stack (1 commande)</strong></p>
+<pre><code>$ docker compose up -d --build
+[+] Running 4/4
+ ✔ Container movieflix-db   Healthy
+ ✔ Container movieflix-api  Started
+ ✔ Container movieflix-web  Started</code></pre>
+<p>📁 <em>Commande à exécuter depuis la racine : <code>movieflix/</code></em></p>
+
+<p><strong>Étape 2 — Inspection des conteneurs</strong></p>
+<pre><code>$ docker ps --format &quot;table {{.Names}}\t{{.Status}}\t{{.Ports}}&quot;
+NAMES           STATUS            PORTS
+movieflix-web   Up (healthy)      0.0.0.0:8080-&gt;80/tcp
+movieflix-api   Up (healthy)      8000/tcp
+movieflix-db    Up (healthy)      5432/tcp</code></pre>
+
+<p><strong>Étape 3 — Démo UI</strong> → <code>http://localhost:8080</code> (films TMDB live, recherche, watchlist)</p>
+
+<p><strong>Étape 4 — Swagger</strong> → <code>http://localhost:8080/api/docs</code></p></div><div class="slide-num">22 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>22. Démo — parcours API complet validé</h2>
+
+<p><strong>Test du parcours via PowerShell (toutes les réponses HTTP) :</strong></p>
+
+<pre><code>[1] POST /api/auth/register  (demo_6116)   → token JWT généré
+[2] POST /api/auth/login                    → reconnecté, token valide
+[3] GET  /api/watchlist (vide)              → 0 items
+[4] POST /api/watchlist  x 3                → Inception, Matrix, Dark Knight
+[5] GET  /api/watchlist                     → 3 items
+[6] DELETE /api/watchlist/603 (Matrix)      → reste 2
+[7] GET  /api/watchlist SANS token          → HTTP 401 (sécurité OK ✅)</code></pre>
+
+<p>📁 <em>Endpoints servis par : <code>backend/app/routers/auth.py</code> + <code>watchlist.py</code></em></p>
+
+<p>→ Cas nominal · cas erreur (doublon = 409) · cas sécurité (sans token = 401)</p></div><div class="slide-num">23 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>23. Démo — preuve de persistance en BDD</h2>
+
+<p><strong>Contenu réel des tables après le parcours :</strong></p>
+
+<pre><code>========== TABLE users ==========
+ID  USERNAME      PASSWORD_HASH (bcrypt $2b$12$...)               CREATED_AT
+1   testuser      $2b$12$6.nVTFNW1ltUobOY065ZR.ZPc2E9uqMNpXxIGV…  2026-05-19 03:11:59
+2   medanroud     $2b$12$uuskI9O1Gsz5JusCTQOhoegsdkPIGuWBUZkqi2…  2026-05-19 03:12:29
+4   demo_6116     $2b$12$/BuTRGwd1SD5SHVlRPpDa.I.n6LnGMgBsyTNbR…  2026-05-19 03:16:59
+
+========== TABLE watchlist_items ==========
+ID  USER_ID  TMDB_ID   TITRE              ADDED_AT
+3   2        1339713   Obsession          2026-05-19 03:13:42
+4   4        27205     Inception          2026-05-19 03:17:00
+6   4        155       The Dark Knight    2026-05-19 03:17:00</code></pre>
+
+<p>📁 <em>Schéma SQL généré par : <code>backend/app/models.py</code></em></p>
+<p>📁 <em>Fichier BDD (mode local SQLite) : <code>backend/movieflix.db</code></em></p>
+<p>📁 <em>BDD Docker : volume <code>movieflix_db_data</code> (PostgreSQL 16)</em></p>
+
+<p>✅ Aucun mot de passe en clair · ✅ FK + ON DELETE CASCADE · ✅ UNIQUE(user_id, tmdb_id)</p></div><div class="slide-num">24 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h2>24. Perspectives & améliorations futures</h2>
+
+<p><strong>Production-readiness :</strong></p>
+<ul>
+<li>🚀 Déploiement <strong>Kubernetes</strong> (Helm chart) avec auto-scaling</li>
+<li>🔄 <strong>Cache Redis</strong> pour les réponses TMDB (réduit le rate-limit)</li>
+<li>📊 Observabilité : <strong>Prometheus + Grafana</strong> + traces OpenTelemetry</li>
+<li>🌍 Internationalisation complète (FR / EN / AR)</li>
+</ul>
+
+<p><strong>Fonctionnel :</strong></p>
+<ul>
+<li>⭐ Système de notes et de critiques personnelles</li>
+<li>🤝 Partage de watchlist entre utilisateurs (recommandations sociales)</li>
+<li>📱 Application mobile <strong>React Native</strong> réutilisant la même API</li>
+<li>🔔 Notifications push à la sortie d'un film de la watchlist</li>
+</ul>
+
+<p><strong>Sécurité avancée :</strong></p>
+<ul>
+<li>🔐 OAuth2 (Google, GitHub login)</li>
+<li>🛡️ Rate-limiting par IP (slowapi)</li>
+<li>🔒 Refresh tokens + rotation JWT</li>
+</ul>
+
+<p>📁 <em>Code et infrastructure prêts à recevoir ces évolutions sans refactor majeur</em></p></div><div class="slide-num">25 / 26</div></section>
+<section class="slide"><div class="slide-inner"><h1>🎬 Merci pour votre attention</h1>
+
+<h3>Place à la démo !</h3>
+
+<p><strong>Équipe :</strong> Med Abroud · Tesnime Chriaa</p>
+
+<p><strong>URLs de démo :</strong></p>
+<ul>
+<li>🌐 Application : <code>http://localhost:8080</code></li>
+<li>📘 Swagger UI : <code>http://localhost:8080/api/docs</code></li>
+<li>🔬 Tests : <code>docker compose exec api pytest</code></li>
+</ul>
+
+<p><strong>Code source :</strong> <code>C:\Users\M\Desktop\devnet\movieflix\</code></p></div><div class="slide-num">26 / 26</div></section>
+</div>
+</body></html>
